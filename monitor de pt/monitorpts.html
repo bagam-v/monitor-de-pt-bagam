@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mapa de PTs - BAGAM</title>
+<style>
+:root{
+--ink:#17242b;
+--muted:#6b7b80;
+--paper:#f4f6f1;
+--line:#d7dfd7;
+--green:#139b68;
+--blue:#145fe8;
+--lime:#b8e632;
+--amber:#e5a12b
+}
+*{
+box-sizing:border-box
+}
+body{
+margin:0;
+background:var(--paper);
+color:var(--ink);
+font:14px Arial,sans-serif
+}
+.shell{
+min-height:100vh;
+display:grid;
+grid-template-columns:1fr
+}
+aside{
+background:#14262a;
+color:white;
+padding:24px 18px
+}
+.brand{
+font-size:25px;
+font-weight:bold;
+color:var(--lime);
+margin-bottom:45px
+}
+.brand small{
+display:block;
+color:#9eb0ac;
+font-size:10px;
+font-weight:normal;
+letter-spacing:1px;
+text-transform:uppercase;
+margin-top:4px
+}
+nav{
+display:grid;
+gap:6px
+}
+nav button{
+padding:12px;
+border:0;
+border-left:3px solid transparent;
+background:transparent;
+color:#a8bbb6;
+text-align:left;
+cursor:pointer
+}
+nav button.active,nav button:hover{
+background:#213a3b;
+color:white;
+border-left-color:var(--lime)
+}
+.side-note{
+margin-top:55vh;
+border-top:1px solid #315052;
+padding:15px 5px;
+color:#9eb0ac;
+font-size:11px;
+line-height:1.6
+}
+main{
+padding:32px clamp(18px,5vw,72px) 42px;
+min-width:0;
+width:100%;
+max-width:1500px;
+margin:0 auto
+}
+header{
+display:flex;
+justify-content:space-between;
+margin-bottom:24px
+}
+h1,h2{
+margin:0;
+text-transform:uppercase
+}
+h1{
+font-size:32px
+}
+h2{
+font-size:18px
+}
+.subtitle,.date{
+color:var(--muted);
+font-size:12px;
+margin-top:5px
+}
+.date{
+text-align:right
+}
+.date b{
+display:block;
+color:var(--ink);
+font-size:13px
+}
+.stats{
+display:grid;
+grid-template-columns:repeat(3,minmax(150px,220px));
+gap:12px;
+margin:0 auto 22px;
+justify-content:center
+}
+.stat,.panel{
+background:white;
+border:1px solid var(--line)
+}
+.stat{
+padding:15px;
+border-bottom:3px solid var(--green)
+}
+.stat:nth-child(2){
+border-bottom-color:var(--amber)
+}
+.stat:nth-child(3){
+border-bottom-color:var(--blue)
+}
+.stat:nth-child(4){
+border-bottom-color:#df604e
+}
+.stat span{
+color:var(--muted);
+font-size:10px;
+text-transform:uppercase
+}
+.stat strong{
+display:block;
+font-size:28px;
+margin-top:5px
+}
+.workspace{
+display:grid;
+grid-template-columns:minmax(0,1fr);
+gap:18px
+}
+.workspace>.panel:first-child{width:min(100%,1180px);margin:0 auto}.map-wrap{padding:clamp(12px,2vw,24px)}
+.panel-head{
+padding:16px 18px;
+border-bottom:1px solid var(--line)
+}
+.panel-head p{
+color:var(--muted);
+font-size:11px;
+margin:4px 0 0
+}
+.map-wrap{
+padding:15px
+}
+.map-tools{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:10px;
+color:var(--muted);
+font-size:11px
+}
+.button{
+border:0;
+background:var(--ink);
+color:#fff;
+padding:9px 12px;
+cursor:pointer;
+font-weight:bold;
+font-size:11px
+}
+.button:hover{
+background:var(--green)
+}
+.map{
+position:relative;
+aspect-ratio:1.62;
+overflow:hidden;
+background:#ddd;
+border:1px solid #aebca9
+}
+.map-image{
+position:absolute;
+inset:0;
+width:100%;
+height:100%;
+object-fit:cover
+}
+.zone{
+position:absolute;
+z-index:2;
+border:3px solid var(--lime);
+background:#b8e63222;
+padding:5px;
+cursor:pointer;
+display:flex;
+justify-content:flex-end;
+align-items:flex-end
+}
+.zone:hover,.zone.selected{
+border-color:var(--blue);
+background:#145fe833
+}
+.zone.editing{
+border-color:var(--amber);
+background:#e5a12b33;
+cursor:move
+}
+.zone b{
+background:var(--blue);
+border-radius:50%;
+color:#fff;
+width:19px;
+height:19px;
+display:grid;
+place-items:center;
+font-size:10px
+}
+.resize-handle{
+display:none;
+position:absolute;
+right:-3px;
+bottom:-3px;
+width:14px;
+height:14px;
+background:var(--amber);
+border:2px solid #fff;
+cursor:nwse-resize
+}
+.editing .resize-handle{
+display:block
+}
+.z1{
+left:1%;
+bottom:3%;
+width:35%;
+height:33%
+}
+.z2{
+left:36%;
+bottom:3%;
+width:9%;
+height:33%
+}
+.z3{
+left:45%;
+bottom:3%;
+width:19%;
+height:33%
+}
+.z4{
+left:43%;
+top:10%;
+width:24%;
+height:40%
+}
+.z5{
+left:67%;
+top:10%;
+width:24%;
+height:40%
+}
+.z6{
+left:64%;
+bottom:3%;
+width:27%;
+height:33%
+}
+.z7{
+left:91%;
+bottom:3%;
+width:16%;
+height:33%
+}
+.z8{
+left:91%;
+top:10%;
+width:16%;
+height:40%
+}
+.legend{
+display:flex;
+justify-content:space-between;
+color:var(--muted);
+font-size:11px;
+padding-top:9px;
+gap:10px;
+flex-wrap:wrap
+}
+.map-legend{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;width:100%;padding:9px 0 0;color:var(--muted);font-size:11px}.map-legend span{display:flex;align-items:center;gap:5px}.legend-icon{width:17px;height:17px;border-radius:50%;display:inline-grid;place-items:center;background:#df604e;color:white;font-size:9px;font-weight:bold}.legend-count{font-size:10px;font-weight:bold;color:#df604e}.legend-name{font-size:10px;color:var(--ink);font-weight:bold}.legend-type{font-size:10px;color:var(--muted)}.map-legend a{color:var(--muted)}
+.pt-marker::before{content:'📋';position:absolute;left:50%;top:50%;font-size:20px;line-height:1;transform:translate(-50%,-50%);filter:drop-shadow(0 1px 1px #fff)}
+.pt-marker b{position:absolute;top:-7px;right:-8px;min-width:18px;height:18px;padding:2px 4px;border:2px solid #fff;border-radius:10px;background:#df604e;color:#fff;font:700 10px Arial,sans-serif;line-height:10px;z-index:5}
+.pt-marker .pt-name,.pt-marker .pt-type{left:50%;width:180px;transform:translateX(-50%);padding:2px 5px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 1px #fff;z-index:4}.pt-marker .pt-name{top:-28px;color:#103d78;background:#ffffffdd;font:700 11px Georgia,serif}.pt-marker .pt-type{top:41px;color:#7a2d08;background:#fff3e6ee;font:700 10px Georgia,serif}
+.pt-marker small:first-of-type{top:-28px;color:#103d78;background:#ffffffdd;font:700 11px Georgia,serif}
+.import{
+margin-top:13px;
+padding:13px;
+background:#f7faf4;
+border:1px dashed #aabbb0;
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px
+}
+.import b{
+display:block;
+font-size:12px
+}
+.import span{
+display:block;
+color:var(--muted);
+font-size:10px;
+margin-top:4px
+}
+.filters{
+padding:12px 18px;
+border-bottom:1px solid var(--line);
+display:flex;
+gap:8px
+}
+select{
+padding:8px;
+border:1px solid var(--line);
+background:#fff;
+font-size:11px;
+max-width:50%
+}
+.permit-list{
+padding:0 18px;
+max-height:440px;
+overflow:auto
+}
+.permit{
+display:grid;
+grid-template-columns:38px 1fr auto;
+gap:10px;
+align-items:center;
+padding:13px 0;
+border-bottom:1px solid #edf0ea;
+cursor:pointer
+}
+.permit-zone{
+width:36px;
+height:36px;
+background:#e6f3bd;
+display:grid;
+place-items:center;
+font-size:19px;
+color:#23713f;
+font-weight:bold
+}
+.permit-title{
+font-weight:bold;
+font-size:12px
+}
+.permit-meta{
+color:var(--muted);
+font-size:10px;
+margin-top:4px
+}
+.tag{
+font-size:9px;
+padding:4px;
+background:#fff1d5;
+color:#94621c;
+font-weight:bold
+}
+.tag.ok{
+background:#e4f5e8;
+color:#23713f
+}
+.tag.alert{
+background:#fde5e0;
+color:#a74134
+}
+.empty{
+text-align:center;
+color:var(--muted);
+font-size:12px;
+padding:30px
+}
+.detail{
+margin-top:18px;
+padding:18px;
+min-height:170px
+}
+.detail .hint{
+color:var(--muted);
+font-size:11px;
+margin-top:4px
+}
+.detail-grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+margin-top:16px
+}
+.detail-item{
+border-top:2px solid var(--line);
+padding-top:7px
+}
+.detail-item span{
+display:block;
+color:var(--muted);
+font-size:9px;
+text-transform:uppercase
+}
+.detail-item b{
+display:block;
+font-size:12px;
+margin-top:4px
+}
+.toast{
+position:fixed;
+right:20px;
+bottom:20px;
+background:var(--ink);
+color:#fff;
+padding:12px;
+font-size:11px;
+opacity:0;
+transition:.2s
+}
+.toast.show{
+opacity:1
+}
+@media(max-width:900px){
+.shell{
+grid-template-columns:1fr
+}
+aside{
+padding:14px 18px
+}
+.brand{
+margin:0 0 12px
+}
+nav{
+display:flex
+}
+.side-note{
+display:none
+}
+main{
+padding:20px 14px
+}
+.workspace{
+grid-template-columns:1fr
+}
+
+}
+@media(max-width:560px){
+header{
+display:block
+}
+.date{
+text-align:left
+}
+.stats{
+grid-template-columns:repeat(2,1fr)
+}
+.workspace{
+display:block
+}
+.workspace>.panel+ .panel{
+margin-top:14px
+}
+.import{
+display:block
+}
+.import .button{
+margin-top:10px
+}
+.detail-grid{
+grid-template-columns:1fr
+}
+
+}
+
+</style></head>
+<body>
+<div class="shell">
+<main>
+<header>
+<div>
+<h1>Mapa de PTs - BAGAM</h1>
+<div class="subtitle">Leitura automatica das PTs e localizacao por zona.</div>
+</div>
+<div class="date">
+<b id="today">--</b>Base operacional</div>
+</header>
+<section class="stats">
+<div class="stat">
+<span>PTs monitoradas</span>
+<strong id="total">0</strong>
+</div>
+<div class="stat">
+<span>Em execucao</span>
+<strong id="active">0</strong>
+</div>
+<div class="stat">
+<span>Zonas ocupadas</span>
+<strong id="zones-count">0</strong>
+</div>
+</section>
+<div class="workspace">
+<section class="panel">
+<div class="panel-head">
+<h2>Planta da base</h2>
+<p>Edite as zonas quando necessario.</p>
+</div>
+<div class="map-wrap">
+<div class="map-tools">
+<span id="edit-help">As zonas estao bloqueadas.</span>
+<div>
+<button class="button" id="edit-zones">Editar zonas</button> <button class="button" id="reset-zones" hidden>Restaurar</button>
+</div>
+</div>
+<div class="map" aria-label="Planta da base">
+<img class="map-image" src="MAPA_BAGAM.png" alt="Planta da base">
+<button class="zone z1" data-zone="1" aria-label="Zona 1">
+<b>1</b>
+</button>
+<button class="zone z2" data-zone="2" aria-label="Zona 2">
+<b>2</b>
+</button>
+<button class="zone z3" data-zone="3" aria-label="Zona 3">
+<b>3</b>
+</button>
+<button class="zone z4" data-zone="4" aria-label="Zona 4">
+<b>4</b>
+</button>
+<button class="zone z5" data-zone="5" aria-label="Zona 5">
+<b>5</b>
+</button>
+<button class="zone z6" data-zone="6" aria-label="Zona 6">
+<b>6</b>
+</button>
+<button class="zone z7" data-zone="7" aria-label="Zona 7">
+<b>7</b>
+</button>
+<button class="zone z8" data-zone="8" aria-label="Zona 8">
+<b>8</b>
+</button>
+</div>
+<div class="legend">
+<div class="map-legend">
+<span><i class="legend-icon">📋</i> Icone: PT aberta na zona</span>
+<span><i class="legend-count">0</i> Quantidade de PTs abertas</span>
+<span><i class="legend-name">Nome</i> Requisitante</span>
+<span><i class="legend-type">Tipo</i> Tipo de trabalho/prioridade</span>
+<a href="https://www.flaticon.com/br/icones-gratis/criterio" target="_blank" rel="noreferrer" title="criterio icones">Credito do icone: srip - Flaticon</a>
+</div>
+<span id="map-status">Nenhuma zona selecionada</span>
+</div>
+<div class="import">
+<div>
+<b>Pasta de PTs do OneDrive</b>
+<span id="source-status">Pasta nao conectada. Autorize o acesso uma vez.</span>
+</div>
+<button class="button" id="connect-folder">Conectar pasta do OneDrive</button>
+</div>
+</div>
+</section>
+<section class="panel">
+<div class="panel-head">
+<h2>Permissoes recentes</h2>
+<p id="list-caption">Nenhum documento identificado</p>
+</div>
+<div class="filters">
+<select id="zone-filter" aria-label="Filtrar por zona">
+<option value="all">Todas as zonas</option>
+<option value="1">Zona 1</option>
+<option value="2">Zona 2</option>
+<option value="3">Zona 3</option>
+<option value="4">Zona 4</option>
+<option value="5">Zona 5</option>
+<option value="6">Zona 6</option>
+<option value="7">Zona 7</option>
+<option value="8">Zona 8</option>
+</select>
+<select id="type-filter" aria-label="Filtrar por tipo">
+<option value="all">Todos os trabalhos</option>
+<option value="quente">Trabalho a quente</option>
+<option value="altura">Trabalho em altura</option>
+<option value="eletrico">Equipamento eletrico</option>
+<option value="espaco">Espaco confinado</option>
+<option value="cargas">Movimentacao de cargas</option>
+<option value="escavacoes">Escavacoes e fundacoes</option>
+<option value="vácuo">Caminhao vacuo</option>
+<option value="mergulho">Mergulho</option>
+<option value="flutuante">Flutuante</option>
+<option value="comum">Trabalho comum</option>
+</select>
+</div>
+<div class="permit-list" id="permit-list">
+<div class="empty">Conecte a pasta para ler as PTs.</div>
+</div>
+</section>
+</div>
+<section class="panel detail" id="detail">
+<h2>Detalhes da permissao</h2>
+<div class="hint">Selecione uma PT na lista.</div>
+</section>
+</main>
+</div>
+<div class="toast" id="toast">
+</div>
+<script type="module">
+const $=id=>document.getElementById(id), normalize=v=>v.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase(), zones={1:['portaria','entrada da base','cancela de entrada patio externo','cancela de saida patio externo','patio externo','estacionamento de veiculos leves'],2:['portao de entrada','cancela entrada patio interno','cancela saida patio interno','predio cco','predio manu','predio adm','cpd','copa','laboratorio','vestiario masculino','banheiro dos motoristas','sala dos motoristas'],3:['plect','plataforma de carregamento','bottom 1','bottom 2','bottom 3','bottom 4','bottom 5','conferencia'],4:['pldct','aditivacao','abrigo de aditivos','anp 44','subestacao','gerador','sci','tq-1113','plataforma de descarga','skid 01','skid 02','skid 03','separador de agua e oleo','sao','sistema de combate a incendio','tanques do sci','motores do sci','areas verdes','descarga manual'],5:['bacia de tanques 01','sistema de drenagem de produto','tq-1107','tq-1108','tq-1109','tq-1110','tq-1111','tq-1123','tq-1124','parque de bombas 01','mb-301 qav','mb-302 qav','mb-303 qav','mb-401 aehc','mb-402 aehc','mb-403 aeac','mb-404 aehc','mb-405 aeac','mb-406 aeac'],6:['bacia de tanques 02','sistema de drenagem de produto','tq-1101','tq-1102','tq-1103','tq-1104','tq-1105','tq-1106','tq-1125','tq-1126','parque de bombas 02','mb-101 diesel','mb-102 diesel','mb-103 diesel','mb-104 diesel','mb-105 odm','mb-106 gasa','mb-201 gasa','mb-202 gasa','mb-203 gasa','mb-204','mb-206 b100','mb-207 b100'],7:['bacia de tanques 03','sistema de drenagem de produto','tq-1127','tq-1128','parque de bombas 03','mb-107 diesel','mb-108 diesel','mb-109 diesel','mb-110 diesel'],8:['abrigo de anp 44','abrigo de contaminados','abrigo manutencao','abrigo leilao','pipe shop','areas verdes']},types=['Trabalho a quente','Trabalho em altura','Trabalho em equipamento eletrico','Trabalho em espaco confinado','Trabalho de movimentacao de cargas','Trabalho de escavacoes e fundacoes','Trabalho com caminhao vacuo','Trabalho com mergulho','Trabalho em flutuante','Trabalho comum'];
+
+const localPart=text=>normalize(text).match(/\blocal\s*[:\-]\s*(.{0,140}?)(?=\s+(?:servico|empresa|unidade|equipamento|tipo|data|responsavel)\s*[:\-]|$)/i)?.[1]||normalize(text), equip=v=>normalize(v).replace(/\b(skid|tq|mb)[\s-]*0+(\d+)\b/g,'$1 $2');
+
+function zoneOf(text){const source=equip(text),local=equip(localPart(text)),hits=[];
+for(const [z,items] of Object.entries(zones))items.forEach(item=>{const x=equip(item);
+if((local.includes(x)||source.includes(x))&&x.length>2)hits.push({z,length:x.length,local:local.includes(x)?1:0})});return hits.sort((a,b)=>b.local-a.local||b.length-a.length)[0]?.z||'?'}
+function locationOf(text){const source=equip(text),local=equip(localPart(text)),hits=Object.values(zones).flat().filter(x=>{const keyword=equip(x);return keyword.length>2&&(local.includes(keyword)||source.includes(keyword))});return hits.sort((a,b)=>(local.includes(equip(b))?1:0)-(local.includes(equip(a))?1:0)||b.length-a.length)[0]||'Local nao identificado'}
+function typeOf(text){const source=normalize(text);return types.find(x=>source.includes(normalize(x)))||'Tipo nao identificado'}
+function fieldOf(text,labels){const label=labels.join('|');return text.match(new RegExp('(?:'+label+')\\s*[:\\-]\\s*(.{1,100}?)(?=\\s+(?:local|servico|empresa|unidade|equipamento|tipo|data|responsavel|requisitante|solicitante)\\s*[:\\-]|$)','i'))?.[1]?.trim()||'Nao identificado'}
+function requesterOf(text){const value=text.match(/requisitante\s*[:\-]\s*(.{1,100}?)(?=\s+(?:local|servico|empresa|unidade|equipamento|tipo|data|emitente|emissor|assinatura|revalidacao|observacao)\s*[:\-]|\s+(?:emitente|emissor|assinatura|revalidacao|medicoes|medições)\b|$)/i)?.[1]?.trim();return value&&!/^[_\-./:]+$/.test(value)?value.split(/\s+/)[0]:'Nao identificado'}
+const locationAliases={1:['area operativa','operacao','portaria','entrada','cancela patio externo','patio externo','estacionamento'],2:['area administrativa','portao','portao de entrada','cancela patio interno','predio cco','cco','predio manu','manutencao','predio adm','administracao','laboratorio','vestiario','banheiro motoristas','sala motoristas'],3:['plect','plataforma carregamento','carregamento','bottom','conferencia'],4:['pldct','plataforma descarga de cts','plataforma descarga de ct','descarga de ct','descarga','aditivacao','anp44','subestacao','gerador','sci','skid','skid i','skid ii','skid iii','separador','sao','combate incendio','tanques sci','motores sci','descarga manual'],5:['bacia tanques 01','bacia tanques 1','bacia tanques i','drenagem produto','areas verdes','parque bombas 01','parque bombas 1','parque bombas i','mb 301','mb 302','mb 303','mb 401','mb 402','mb 403','mb 404','mb 405','mb 406'],6:['bacia tanques 02','bacia tanques 2','bacia tanques ii','drenagem produto','areas verdes','parque bombas 02','parque bombas 2','parque bombas ii','mb 101','mb 102','mb 103','mb 104','mb 105','mb 106','mb 201','mb 202','mb 203','mb 204','mb 206','mb 207'],7:['bacia tanques 03','bacia tanques 3','bacia tanques iii','drenagem produto','areas verdes','parque bombas 03','parque bombas 3','parque bombas iii','mb 107','mb 108','mb 109','mb 110'],8:['abrigo anp','abrigo de anp 44','contaminados','abrigo manutencao','manutencao','abrigo leilao','pipe shop','areas verdes']};Object.entries(locationAliases).forEach(([z,items])=>zones[z].push(...items));
+let permits=[], observed=new Map(), folder=null,busy=false;
+
+const folderDb=(()=>{let dbPromise;return{open(){return dbPromise||(dbPromise=new Promise((resolve,reject)=>{const request=indexedDB.open('atlas-pt',1);request.onupgradeneeded=()=>request.result.createObjectStore('settings');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)}))},async save(handle){const db=await this.open();return new Promise((resolve,reject)=>{const tx=db.transaction('settings','readwrite');tx.objectStore('settings').put(handle,'folder');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})},async load(){const db=await this.open();return new Promise((resolve,reject)=>{const tx=db.transaction('settings','readonly'),request=tx.objectStore('settings').get('folder');request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}}})();
+
+async function permission(handle,request=false){const options={mode:'read'};
+if((await handle.queryPermission(options))==='granted')return true;return request&&(await handle.requestPermission(options))==='granted'}
+$('today').textContent=new Intl.DateTimeFormat('pt-BR',{dateStyle:'full'}).format(new Date());
+
+function render(){const z=$('zone-filter').value,t=$('type-filter').value,visible=permits.filter(p=>(z==='all'||p.zone===z)&&(t==='all'||normalize(p.type).includes(normalize(t==='eletrico'?'equipamento eletrico':t==='vácuo'?'caminhao vacuo':t))));
+$('permit-list').innerHTML=visible.length?visible.map(p=>`<article class="permit" data-id="${p.id}"><div class="permit-zone">${p.zone}</div><div><div class="permit-title">${p.title}</div><div class="permit-meta">${p.id} · ${p.location} · ${p.file}</div></div><span class="tag ${p.status==='Em execucao'?'ok':'alert'}">${p.status}</span></article>`).join(''):'<div class="empty">Nenhuma PT encontrada.</div>';
+$('list-caption').textContent=`${visible.length} documento${visible.length===1?'':'s'} identificado${visible.length===1?'':'s'}`;
+$('total').textContent=permits.length;
+$('active').textContent=permits.filter(p=>p.status==='Em execucao').length;
+$('zones-count').textContent=new Set(permits.map(p=>p.zone).values()).size;
+document.querySelectorAll('.permit').forEach(el=>el.onclick=()=>detail(permits.find(p=>p.id===el.dataset.id)))}
+function detail(p){$('detail').innerHTML=`<h2>${p.title}</h2><div class="hint">${p.id} · ${p.file}</div><div class="detail-grid"><div class="detail-item"><span>Local identificado</span><b>${p.location} · Zona ${p.zone}</b></div><div class="detail-item"><span>Requisitante</span><b>${p.requester}</b></div><div class="detail-item"><span>Tipo de trabalho</span><b>${p.type}</b></div><div class="detail-item"><span>Status</span><b>${p.status}</b></div></div>`}new MutationObserver(()=>{if(document.querySelector('.map'))renderMarkers()}).observe($('permit-list'),{childList:true});
+new MutationObserver(()=>document.querySelector('.map')?.classList.toggle('editing',$('edit-zones').textContent==='Concluir edicao')).observe($('edit-zones'),{childList:true});
+
+function renderMarkers(){let layer=map.querySelector('.markers');if(!layer){layer=document.createElement('div');layer.className='markers';layer.setAttribute('aria-label','PTs abertas por zona');map.append(layer);const style=document.createElement('style');style.textContent='.markers{position:absolute;inset:0;z-index:4;pointer-events:none}.map.editing .markers{pointer-events:none}.pt-marker{position:absolute;width:30px;height:30px;border:2px solid white;border-radius:50%;background:#df604e;color:white;box-shadow:0 2px 8px #17242b88;cursor:pointer;pointer-events:auto;transform:translate(-50%,-50%);font-size:10px;font-weight:bold}.pt-marker:hover,.pt-marker.open{z-index:3;background:var(--blue);transform:translate(-50%,-50%) scale(1.08)}.pt-marker small{position:absolute;top:26px;left:50%;width:150px;transform:translateX(-50%);color:var(--ink);font-size:10px;font-weight:bold;white-space:normal}.pt-popup{position:absolute;left:50%;bottom:37px;display:none;width:230px;padding:11px;background:white;border:1px solid var(--line);box-shadow:0 5px 18px #17242b33;color:var(--ink);text-align:left;transform:translateX(-50%);font-size:11px;line-height:1.4}.pt-marker.open .pt-popup{display:block}.pt-popup b{display:block;font-size:12px;margin-bottom:4px}.pt-popup span{display:block;color:var(--muted)}';document.head.append(style)}layer.innerHTML='';const mapBox=map.getBoundingClientRect();const grouped=new Map();permits.filter(p=>/^[1-8]$/.test(p.zone)).forEach(p=>{if(!grouped.has(p.zone))grouped.set(p.zone,[]);grouped.get(p.zone).push(p)});grouped.forEach((items,zoneNumber)=>{const zone=map.querySelector(`.z${zoneNumber}`),box=zone.getBoundingClientRect(),marker=document.createElement('button');marker.className='pt-marker';marker.type='button';marker.textContent=items.length;marker.title=`${items.length} PT(s) aberta(s) na Zona ${zoneNumber}`;marker.style.left=`${box.left-mapBox.left+box.width/2}px`;marker.style.top=`${box.top-mapBox.top+box.height/2}px`;const names=[...new Set(items.map(p=>p.requester))].join(', '),types=[...new Set(items.map(p=>p.type))].join(', '),label=document.createElement('small');label.textContent=names;const popup=document.createElement('span');popup.className='pt-popup';popup.innerHTML=`<b>Zona ${zoneNumber} · ${items.length} PT(s) aberta(s)</b><span>Requisitante: ${names}</span><span>Tipo/prioridade: ${types}</span>`;marker.append(label,popup);marker.onclick=e=>{e.stopPropagation();document.querySelectorAll('.pt-marker.open').forEach(x=>x!==marker&&x.classList.remove('open'));marker.classList.toggle('open');detail(items[0])};layer.append(marker)})}
+async function extract(file){const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');pdfjs.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+const pdf=await pdfjs.getDocument({data:await file.arrayBuffer()}).promise;
+	new MutationObserver(()=>document.querySelectorAll('.pt-marker').forEach(marker=>{const count=marker.firstChild;if(count?.nodeType===3){const badge=document.createElement('b');badge.textContent=count.textContent.trim();count.remove();marker.prepend(badge)}if(marker.querySelector('.pt-type'))return;const type=document.createElement('small');type.className='pt-type';type.textContent=marker.querySelector('.pt-popup span:last-child')?.textContent.replace('Tipo/prioridade: ','')||'Tipo nao identificado';marker.append(type)})).observe(map,{childList:true,subtree:true});
+	let out='';
+for(let n=1;n<=pdf.numPages;n++){const c=await(await pdf.getPage(n)).getTextContent();out+=c.items.map(i=>i.str).join(' ')+' '}return out}
+async function* filesIn(dir,path=''){for await(const e of dir.values()){const p=path?path+'/'+e.name:e.name;
+if(e.kind==='directory')yield* filesIn(e,p);else if(/\.pdf$/i.test(e.name)){const f=await e.getFile();yield{f,path:p,stamp:f.size+'-'+f.lastModified}}}}
+async function scan(){if(!folder||busy)return;busy=true;
+try{if(!await permission(folder))throw Error('permission');
+let count=0,seen=new Set();
+for await(const item of filesIn(folder)){count++;seen.add(item.path);
+if(observed.get(item.path)===item.stamp)continue;
+const text=await extract(item.f),p={zone:zoneOf(text),location:locationOf(text),requester:requesterOf(text),type:typeOf(text),title:item.f.name.replace(/\.pdf$/i,'').replace(/[_-]/g,' '),status:'Importada',file:item.path};
+const old=permits.find(x=>x.file===item.path);
+if(old)Object.assign(old,p);else permits.unshift({id:'PDF-'+Date.now()+count,...p});observed.set(item.path,item.stamp)}permits=permits.filter(p=>seen.has(p.file));
+for(const path of observed.keys())if(!seen.has(path))observed.delete(path);
+$('source-status').textContent=`OneDrive conectado · ${count} PDF${count===1?'':'s'} · atualizacao automatica`;
+render()}catch(e){$('source-status').textContent=e.message==='permission'?'Permissao expirada. Clique em Conectar pasta para autorizar novamente.':'Acesso interrompido. Reconecte a pasta.'}finally{busy=false}}
+async function restoreFolder(){if(!window.showDirectoryPicker||!window.indexedDB)return;
+try{const saved=await folderDb.load();
+if(saved&&await permission(saved)){folder=saved;
+$('source-status').textContent='Pasta conectada. Procurando novos PDFs...';await scan()}}catch(e){$('source-status').textContent='Pasta salva encontrada. Clique em Conectar pasta para autorizar novamente.'}}
+$('connect-folder').onclick=async()=>{if(!window.showDirectoryPicker){$('source-status').textContent='Use Chrome ou Edge para conectar a pasta automaticamente.';return}try{const selected=await showDirectoryPicker({mode:'read'});
+if(!await permission(selected,true))throw Error('permission');folder=selected;await folderDb.save(folder);permits=[];observed.clear();
+$('source-status').textContent='Pasta conectada. Procurando novos PDFs...';await scan()}catch(e){$('source-status').textContent='Pasta nao conectada. Autorize o acesso para iniciar.'}};
+setInterval(scan,10000);restoreFolder();
+$('zone-filter').onchange=render;
+$('type-filter').onchange=render;
+
+let editing=false,drag=null;
+const map=document.querySelector('.map'),zoneEls=[...document.querySelectorAll('.zone')];zoneEls.forEach(el=>{const h=document.createElement('i');h.className='resize-handle';el.append(h);el.onpointerdown=e=>{if(!editing)return;e.preventDefault();
+const b=map.getBoundingClientRect();drag={el,resize:e.target===h,startX:e.clientX,startY:e.clientY,left:el.offsetLeft,top:el.offsetTop,w:el.offsetWidth,ht:el.offsetHeight,b};el.setPointerCapture(e.pointerId)};el.onpointermove=e=>{if(!drag||drag.el!==el)return;
+const dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;
+if(drag.resize){el.style.width=Math.max(35,drag.w+dx)+'px';el.style.height=Math.max(35,drag.ht+dy)+'px'}else{el.style.left=Math.max(0,Math.min(drag.b.width-el.offsetWidth,drag.left+dx))+'px';el.style.top=Math.max(0,Math.min(drag.b.height-el.offsetHeight,drag.top+dy))+'px';el.style.bottom='auto'}};el.onpointerup=()=>{if(drag){localStorage.zones=JSON.stringify(zoneEls.map(x=>({z:x.dataset.zone,l:x.style.left,t:x.style.top,w:x.style.width,h:x.style.height})));drag=null}};el.onpointercancel=()=>{drag=null}});
+
+try{JSON.parse(localStorage.zones||'[]').forEach(p=>{const e=zoneEls.find(x=>x.dataset.zone===p.z);
+if(e){e.style.left=p.l;e.style.top=p.t;e.style.width=p.w;e.style.height=p.h;e.style.bottom='auto'}})}catch(e){}$('edit-zones').onclick=()=>{editing=!editing;zoneEls.forEach(x=>x.classList.toggle('editing',editing));
+$('edit-zones').textContent=editing?'Concluir edicao':'Editar zonas';
+$('reset-zones').hidden=!editing;
+$('edit-help').textContent=editing?'Arraste ou redimensione pelo canto amarelo.':'As zonas estao bloqueadas.'};
+$('reset-zones').onclick=()=>{localStorage.removeItem('zones');location.reload()};zoneEls.forEach(e=>e.onclick=()=>{if(!editing){$('zone-filter').value=e.dataset.zone;
+$('map-status').textContent='Zona '+e.dataset.zone+' selecionada';
+render()}});
+render();
+</script></body>
+</html>
